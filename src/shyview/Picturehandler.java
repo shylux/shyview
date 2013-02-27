@@ -73,11 +73,11 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private File favorite_folder = null;
 	private Preferences pref;
 	
-	Picturehandler(JMenu listcontainer, PicViewGUI parent, JMenu mnuDB) {
+	Picturehandler(JMenu listcontainer, PicViewGUI parent) {
 		this.info = new TitleInformer(parent);
 		this.parent = parent;
 		this.menuLists = listcontainer;
-		this.menuDB = mnuDB;
+		//this.menuDB = mnuDB;
 		if (this.menuDB != null) {
 			this.menuDB.addMouseListener(new DBMenuListener());
 			new DropTarget(menuDB, this);
