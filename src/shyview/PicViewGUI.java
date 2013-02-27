@@ -64,7 +64,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	private JMenu mnuDB;
 	private JMenuItem mnuViewFullscreen;
 	private Picturehandler picturebox;
-	private Picturehandler preview = new Picturehandler(new JMenu(), this, mnuDB);
+	private Picturehandler preview = new Picturehandler(new JMenu(), this);
 	private JMenuItem mnuPicResize;
 	private JMenu mnuFileClear;
 	private JCheckBoxMenuItem mnuTimerPing;
@@ -144,6 +144,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 						mnuTimerDelay.addActionListener(this);
 					}
 				}
+				/*
 				{
 					mnuDB = new JMenu();
 					mnuMenu.add(mnuDB);
@@ -151,8 +152,9 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 					mnuDB.addActionListener(this);
 					mnuDB.addMouseListener(this);
 				}
+				*/
 				{
-					picturebox = new Picturehandler(mnuLists, this, mnuDB);
+					picturebox = new Picturehandler(mnuLists, this);
 					new MateServer(picturebox);
 					getContentPane().add(picturebox, BorderLayout.CENTER);
 				}
