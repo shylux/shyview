@@ -31,6 +31,7 @@ import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,8 +51,17 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
-import shyview.MangaWatcherDB.MangaMenuItem;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import webmate.IWebMateListener;
 import MenuScroller.MenuScroller;
 @SuppressWarnings("serial")
@@ -61,9 +71,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private ShyluxFileFilter jsonfilter = new ShyluxFileFilter();
 	private IPicList mylist = new PictureList("Default");
 	private JMenu menuLists;
-	private JMenu menuDB;
-	private MangaWatcherDB mangaDB;
-	private String DBLocation = "";
 	private Timer timer = new Timer(1000, this);
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
 	private Image errorimage = new ImageIcon(getClass().getResource("ErrorImage.jpg")).getImage();
@@ -77,11 +84,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.info = new TitleInformer(parent);
 		this.parent = parent;
 		this.menuLists = listcontainer;
-		//this.menuDB = mnuDB;
-		if (this.menuDB != null) {
-			this.menuDB.addMouseListener(new DBMenuListener());
-			new DropTarget(menuDB, this);
-		}
+		
 		listlist.add(mylist);
 		this.picturefilter.addExtension(".jpg");
 		this.picturefilter.addExtension(".png");
@@ -645,11 +648,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	            @SuppressWarnings("rawtypes")
 				java.util.List files = (java.util.List)tr.getTransferData(DataFlavor.javaFileListFlavor);
 	            
-	            // check for database
-	            if (files.size() == 1) {
-	            	if (files.get(0).toString().endsWith(".db")) setDatabase(files.get(0).toString());
-	            }
-	            
 	            
 	            for (Object item: files) result.add(new File(item.toString()));
 	            this.autoimportfiles(result);
@@ -699,10 +697,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		      } else if (transferable.isDataFlavorSupported(uriListFlavor)) {
 		        String data = (String) transferable.getTransferData(uriListFlavor);
 		        ArrayList<File> files = textURIListToFileList(data);
-		        // check for database
-	            if (files.size() == 1) {
-	            	if (files.get(0).toString().endsWith(".db")) setDatabase(files.get(0).toString());
-	            }
 		        for (Object item: files) result.add(new File(item.toString()));
 		        this.autoimportfiles(result);
 		        this.repaint();
@@ -718,11 +712,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.setList(0);
 		this.repaint();
 	   }
-	
-	private void setDatabase(String loc) {
-		DBLocation = loc;
-		pref.put("db_location", loc);
-	}
 
 	private boolean deepfolder = false;
 	public void autoimportfiles(ArrayList<File> files) {
@@ -896,59 +885,64 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		return tmpf;
 	}
 	
-	class DBMenuListener implements java.awt.event.MouseListener {
-		public void mouseClicked(MouseEvent arg0) {
-			if (DBLocation.length() == 0) DBLocation = pref.get("db_location", "");
-			if (DBLocation.length() == 0) {
-				menuDB.setText("Database unlocated.");
-				return;
-			}
-			menuDB.setText("Connecting to Database..");
-			menuDB.removeMouseListener(this);
-			try {
-				mangaDB = new MangaWatcherDB(DBLocation);
-			} catch (Exception e) {
-				menuDB.setText("Connection failed.");
-				e.printStackTrace();
-				return;
-			}
-			menuDB.setText("Loading Mangas..");
-			try {
-				mangaDB.loadMangas(menuDB, new DBSelectionListener());
-			} catch (SQLException e) {
-				menuDB.setText("Loading failed.");
-				e.printStackTrace();
-				return;
-			}
-			menuDB.setText("Mangas");
-			new MenuScroller(menuDB);
-			menuDB.setSelected(false);
-		}
-		public void mouseEntered(MouseEvent arg0) {	}
-		public void mouseExited(MouseEvent arg0) {}
-		public void mousePressed(MouseEvent arg0) {}
-		public void mouseReleased(MouseEvent arg0) {}
-	}
-	class DBSelectionListener implements ActionListener {
-		public void actionPerformed(ActionEvent e) {
-			MangaMenuItem item = (MangaMenuItem) e.getSource();
-			clear();
-			try {
-				listlist = mangaDB.loadChapter(item.getId());
-				sort();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				menuDB.setText("Cant load Chapters.");
-				return;
-			}
-			System.err.println(item.getId());
-		}
-	}
 	@Override
 	public void onWebMateData(String data) {
 		clear();
-		ArrayList<IPicList> newlists = MangaWatcherDB.loadChapter(data);
+		ArrayList<IPicList> newlists = Picturehandler.loadChapter(data);
 		addLists(newlists);
 		repaint();
+	}
+	
+	public static ArrayList<IPicList> loadChapter(String xmldata) {
+		ArrayList<PictureList> chapters = new ArrayList<PictureList>();
+		
+		StringReader inStream = new StringReader(xmldata);
+		InputSource inSource = new InputSource(inStream);
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		try {
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(inSource);
+			Element rootNode = doc.getDocumentElement();
+			NodeList chapterList = rootNode.getElementsByTagName("Chapter");
+			for (int i = 0; i < chapterList.getLength(); i++) {
+				Node nNode = chapterList.item(i);
+				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+					Element chapter = (Element) nNode;
+					NodeList title = chapter.getElementsByTagName("Title");
+					String chapName = title.item(0).getTextContent();
+					NodeList pages = chapter.getElementsByTagName("Pages");
+					String chapPages = pages.item(0).getTextContent();
+					
+					// build list
+					PictureList chapt = new PictureList(chapName);
+					String[] arrimages = chapPages.split(",");
+					int counter = 1;
+					for (String imgpair: arrimages) {
+						String url = imgpair.split("~")[0];
+						try {
+							WebPicture pic = new WebPicture(url);
+							pic.setName(""+counter);
+							counter++;
+							chapt.add(pic);
+						} catch (MalformedURLException e) {
+							System.err.println("Malformed! "+url);
+						}
+					}
+					chapters.add(chapt);
+				}
+			}
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		ArrayList<IPicList> out = new ArrayList<IPicList>();
+		for (PictureList ch: chapters) {
+			out.add(ch);
+		}
+		return out;
 	}
 }
