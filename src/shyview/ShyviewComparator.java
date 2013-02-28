@@ -17,48 +17,47 @@ public class ShyviewComparator {
 	}
 	
 	public int compareString(String unit1, String unit2) {
+		// cut equal part. this includes potential numbers.
 		int firstdif = this.firstDifference(unit1, unit2);
 		unit1 = unit1.substring(firstdif, unit1.length());
 		unit2 = unit2.substring(firstdif, unit2.length());
-		int min = getMinNumberLength(unit1, unit2);
+		
+		// try to compare as numbers
 		int compare = 0;
-		if (min > 0) {
-			Double intpic1 = getNumber(unit1);
-			Double intpic2 = getNumber(unit2);
+		try {
+			Integer intpic1 = getFirstNumber(unit1);
+			Integer intpic2 = getFirstNumber(unit2);
 			compare = intpic1.compareTo(intpic2);
-		} else {
+		} catch (NumberFormatException e) { // fall back to string comparing
 			compare = unit1.compareToIgnoreCase(unit2);
 		}
 		return compare;
 	}
 	
-	public int getNumberLength(String str, int startpos) {
-		int pos = 0;
-		while (pos + startpos != str.length()) {
-			char test = str.charAt(pos + startpos);
-			if (!Character.isDigit(test)) break;  
-			pos++;
+	/**
+	 * Returns the first number in the string.
+	 * @param str String with a number in it
+	 * @return first number in the given string.
+	 * @throws NumberFormatException if no number found
+	 * 
+	 * Regex would be a cleaner option. TODO
+	 */
+	private int getFirstNumber(String str) throws NumberFormatException {
+		StringBuilder buffer = new StringBuilder(str);
+		// remove all non-digits in front of the string
+		while (buffer.length() > 0) {
+			if (Character.isDigit(buffer.charAt(0))) break; // break at first digit
+			buffer.deleteCharAt(0);
 		}
-		return pos;
-	}
-	
-	private int getMinNumberLength(String a, String b) {
-		int cha = getNumberLength(a,0);
-		int chb = getNumberLength(b,0);
-		return (cha < chb) ? cha : chb;
-	}
-	
-	private double getNumber(String str) {
-		int length = getNumberLength(str,0);
-		String numb = (String) str.subSequence(0, length);
-		double re = 0;
-		try {
-			re = Double.valueOf(numb).doubleValue();
-			//re = Integer.valueOf(numb).intValue();
-		} catch (java.lang.NumberFormatException e) {
-			e.printStackTrace();
-		}
-		return re;
+		// remove all non-digits from the back of the string
+		int i = 0;
+		for (; i < buffer.length(); i++) if (!Character.isDigit(buffer.charAt(i))) break;
+		buffer.delete(i, buffer.length());
+		
+		// parse integer
+		Integer integer = Integer.parseInt(buffer.toString());
+		if (integer == null) throw new NumberFormatException();
+		return integer.intValue();
 	}
 	private int firstDifference(String a, String b) {
 		int minlength = (a.length() < b.length()) ? a.length() : b.length();

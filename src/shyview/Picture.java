@@ -13,20 +13,20 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 
-public class WebPicture implements IPicture {
+public class Picture implements IPicture {
 	private final static int MAX_IMAGE_LOADING_TIME = 5;
 	
 	private URL picres;
 	Future<Image> swapimage = null;
 	String customname = null;
 	
-	public WebPicture(URL url) {
+	public Picture(URL url) {
 		picres = url;
 	}
-	public WebPicture(String strurl) throws MalformedURLException {
+	public Picture(String strurl) throws MalformedURLException {
 		picres = new URL(strurl);
 	}
-	public WebPicture(File f) throws MalformedURLException {
+	public Picture(File f) throws MalformedURLException {
 		picres = f.toURI().toURL();
 	}
 

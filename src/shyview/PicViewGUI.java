@@ -258,9 +258,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 		case KeyEvent.VK_PAGE_UP:
 			this.picturebox.getPreviousList();
 			break;
-		case KeyEvent.VK_B:
-			this.setTitle(getTitle() + picturebox.setrotateblur());
-			break;
 		case KeyEvent.VK_M:
 			switch (picturebox.getRotation()) {
 			case 0:
@@ -292,9 +289,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 				picturebox.setRotation(0);
 				break;
 			}
-			break;
-		case KeyEvent.VK_F:
-			this.picturebox.favorite_picture();
 			break;
 		default:
 			break;

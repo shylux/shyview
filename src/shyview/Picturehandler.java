@@ -35,7 +35,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,10 +62,10 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import webmate.IWebMateListener;
-import MenuScroller.MenuScroller;
 @SuppressWarnings("serial")
 public class Picturehandler extends JPanel implements ImageObserver, ActionListener, DropTargetListener, IWebMateListener {
 	private ArrayList<IPicList>  listlist = new ArrayList<IPicList>();
+	private int list_index = 0;
 	private ShyluxFileFilter picturefilter = new ShyluxFileFilter();
 	private ShyluxFileFilter jsonfilter = new ShyluxFileFilter();
 	private IPicList mylist = new PictureList("Default");
@@ -74,7 +73,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private Timer timer = new Timer(1000, this);
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
 	private Image errorimage = new ImageIcon(getClass().getResource("ErrorImage.jpg")).getImage();
-	private int index = 0;
 	private PicViewGUI parent;
 	private IPicInfo info;
 	private File favorite_folder = null;
@@ -115,7 +113,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	
 	public void addPicture(String Path, String list) {
 		try {
-			this.getList(list).add(new WebPicture(Path));
+			this.getList(list).add(new Picture(Path));
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -145,18 +143,18 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	}
 	public IPicList getNextList() {
 		if (this.listlist.size() == 0) return new PictureList("Default");
-		index += 1;
-		if (listlist.size() - 1 < index) index = 0;
-		this.mylist = listlist.get(index);
+		list_index += 1;
+		if (listlist.size() - 1 < list_index) list_index = 0;
+		this.mylist = listlist.get(list_index);
 		this.mylist.setIndex(0);
 		repaint();
 		return this.mylist;
 	}
 	public IPicList getPreviousList() {
 		if (this.listlist.size() == 0) return new PictureList("Default");
-		index -= 1;
-		if (index < 0) index = listlist.size() - 1;
-		this.mylist = listlist.get(index);
+		list_index -= 1;
+		if (list_index < 0) list_index = listlist.size() - 1;
+		this.mylist = listlist.get(list_index);
 		this.mylist.setIndex(0);
 		info.update(aclist());
 		repaint();
@@ -169,19 +167,19 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			if (list.getName() == listname) { 
 				acpic().flush();
 				this.mylist = list;
-				this.index = i;
+				this.list_index = i;
 				mylist.setIndex(0);
 			}
 		}
 	}
-	public void setList(IPicList newlist) {
-		this.listlist.add(newlist);
-		this.mylist = newlist;
+	public void setList(IPicList list) {
+		list_index = this.listlist.indexOf(list);
+		this.mylist = list;
 		mylist.setIndex(0);
 	}
 	public void setList(int index) {
 		if (index > this.listlist.size()) index = 0;
-		this.index = index;
+		this.list_index = index;
 		this.mylist = this.listlist.get(index);
 		this.mylist.setIndex(0);
 	}
@@ -198,9 +196,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		repaint();
 		return true;
 	}
-	public Dimension getPreferredSize() {
-		return new Dimension(acpic().getDimension());
-	}
+
 	public int count() {
 		int value = 0;
 		for (IPicList list: this.listlist) {
@@ -216,21 +212,13 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public int getTimerdelay() {
 		return this.timer.getDelay();
 	}
+	
 	public void startTimer() {
 		this.timer.start();
 	}
-	public void stopTimer() {
-		this.timer.stop();
-	}
-	public void restartTimer() {
-		this.timer.restart();
-	}
 	public void toggleTimer() {
-		if (this.timer.isRunning()) {
-			this.timer.stop();
-		} else {
-			this.timer.start();
-		}
+		if (this.timer.isRunning()) this.timer.stop();
+		else this.timer.start();
 	}
 	public boolean isTimerRunning() {
 		return this.timer.isRunning();
@@ -246,7 +234,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		return newlist;
 	}
 	
-	public int blur = 0;
 	public void paint(Graphics g) {
 		super.paint(g);
 		
@@ -345,7 +332,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 				}
 			}
 		
-			if ((width < picwidth / 3 * 2 || height < picheight / 3 * 2) && this.blur == 0 || this.blur == 1) {
+			if (width < picwidth / 3 * 2 || height < picheight / 3 * 2) {
 				output = resizeTrick(output, width, height);
 			} else {
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -403,7 +390,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			
 			//System.out.println("width: " + width + " height: " + height + " top: " + top + " left: " + left + " boxwidth: " + boxwidth + " boxheight: " + boxheight);
 			
-			if ((width < picwidth / 3 * 2 || height < picheight / 3 * 2) && this.blur == 0 || this.blur == 1) {
+			if (width < picwidth / 3 * 2 || height < picheight / 3 * 2) {
 				output = resizeTrick(output, width, height);
 			} else {
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -736,7 +723,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 				} else {
 					for (File f: dir) {
 						try {
-							this.getList(new File(f.getParent()).getAbsolutePath()).add(new WebPicture(f.getAbsoluteFile()));
+							this.getList(new File(f.getParent()).getAbsolutePath()).add(new Picture(f.getAbsoluteFile()));
 						} catch (MalformedURLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -758,7 +745,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		ArrayList<IPicture> pic = new ArrayList<IPicture>();
 		for (File f: c) {
 			try {
-				pic.add(new WebPicture(f));
+				pic.add(new Picture(f));
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -770,7 +757,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		ArrayList<IPicture> pic = new ArrayList<IPicture>();
 		for (String s: c) {
 			try {
-				pic.add(new WebPicture(s));
+				pic.add(new Picture(s));
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -815,38 +802,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.repaint();
 	}
 	
-	public void startResize() {
-		System.out.println("start resize");
-	}
-	
-	public void stopResize() {
-		System.out.println("stop resize");
-	}
-	
-	public void setBlurdefault() {
-		this.blur = 0;
-	}
-	public void setBlurforceenabled() {
-		this.blur = 1;
-	}
-	public void setBlurforcedisabled() {
-		this.blur = 2;
-	}
-	public int setrotateblur() {
-		switch (this.blur) {
-		case 0: 
-			this.blur = 1;
-			break;
-		case 1:
-			this.blur = 2;
-			break;
-		case 2:
-			this.blur = 0;
-			break;
-		}
-		this.repaint();
-		return this.blur;
-	}
 	public int getRotation() {
 		return this.rotation;
 	}
@@ -863,7 +818,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		Collections.sort(this.listlist, comp);
 		this.redrawlists();
 	}
-	
+	/*
 	public void favorite_picture() {
 		String listname = this.mylist.getName();
 		File acpic = new File(this.mylist.current().getPath());
@@ -872,6 +827,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			//util.Filesystem.copy(acpic, favo_dir);
 		//} catch (IOException e) {e.printStackTrace();}
 	}
+	*/
 	public File get_favorite_folder() {
 		if (this.favorite_folder == null || !this.favorite_folder.exists()) {
 			//new File(util.Filesystem.getUserHomeString(), "Shyview Favorites").mkdir();
@@ -890,6 +846,8 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		clear();
 		ArrayList<IPicList> newlists = Picturehandler.loadChapter(data);
 		addLists(newlists);
+		sort();
+		list_index = 0;
 		repaint();
 	}
 	
@@ -920,7 +878,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 					for (String imgpair: arrimages) {
 						String url = imgpair.split("~")[0];
 						try {
-							WebPicture pic = new WebPicture(url);
+							Picture pic = new Picture(url);
 							pic.setName(""+counter);
 							counter++;
 							chapt.add(pic);
