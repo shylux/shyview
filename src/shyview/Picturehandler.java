@@ -183,6 +183,16 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.mylist = this.listlist.get(index);
 		this.mylist.setIndex(0);
 	}
+	
+	/**
+	 * Setting index of actual list. First element is 0.
+	 * @param i index. first element is 0
+	 */
+	public void setPictureIndex(int i) {
+		aclist().setIndex(i);
+		repaint();
+	}
+	
 	public synchronized void addLists(List<IPicList> lists) {
 		listlist.addAll(lists);
 		redrawlists();

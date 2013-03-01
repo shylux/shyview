@@ -60,6 +60,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	private JMenuBar mnuMenu;
 	private JMenu mnuLists = new JMenu();
 	private JMenuItem mnuTimerDelay;
+	private JMenuItem mnuSetIndex;
 	private JMenu mnuTimer;
 	private JMenu mnuDB;
 	private JMenuItem mnuViewFullscreen;
@@ -143,6 +144,12 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 						mnuTimerDelay.setText("set Delay");
 						mnuTimerDelay.addActionListener(this);
 					}
+					{
+						mnuSetIndex = new JMenuItem();
+						mnuTimer.add(mnuSetIndex);
+						mnuSetIndex.setText("set Index");
+						mnuSetIndex.addActionListener(this);
+					}
 				}
 				/*
 				{
@@ -204,6 +211,15 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 				if (delay > 0) {
 					this.picturebox.setTimerdelay(delay * 100);
 				}
+			}
+		} else if (e.getSource() == mnuSetIndex) {
+			String response = JOptionPane.showInputDialog(null, "Set index of current list.", "Index", JOptionPane.QUESTION_MESSAGE);
+			if (response != null) {
+				try {
+					Integer index = Integer.parseInt(response);
+					this.picturebox.setPictureIndex(index.intValue()-1);
+				} catch (Exception e2) {}
+				
 			}
 		} else if (e.getSource() == mnuTimerPing) {
 			//TODO Create auto change
