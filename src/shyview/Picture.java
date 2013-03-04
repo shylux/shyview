@@ -47,7 +47,7 @@ public class Picture implements IPicture {
 
 	@Override
 	public Image getPicture() throws StillLoadingException, FileNotFoundException {
-		if (swapimage == null) loadImage();
+		if (swapimage == null) preload();
 		if (!swapimage.isDone()) throw new StillLoadingException();
 		Image tmp;
 		try {
@@ -74,11 +74,6 @@ public class Picture implements IPicture {
 	}
 
 	@Override
-	public void preload() {
-		loadImage();
-	}
-
-	@Override
 	public void flush() {
 		swapimage = null;
 	}
@@ -87,14 +82,10 @@ public class Picture implements IPicture {
 		if (swapimage != null) swapimage.cancel(true);
 	}
 	
-	public void loadImage() {
+	public void preload() {
+		//System.out.println("Preloading "+getName());
 		ExecutorService exs = Executors.newSingleThreadExecutor();
 		swapimage = exs.submit(new ImageLoadTask()); // start task
-		/*try {
-			swapimage.get(MAX_IMAGE_LOADING_TIME, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}*/
 	}
 	class ImageLoadTask implements Callable<Image> {
 		public Image call() throws Exception {

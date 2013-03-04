@@ -5,6 +5,13 @@ import java.awt.Frame;
 public class TitleInformer implements IPicInfo {
 	private static final String NOPICTURES = "No pictures available";
 	
+	private TitleInformer() {};
+	private static TitleInformer _instance;
+	public static TitleInformer getInstance() {
+		if (_instance == null) _instance = new TitleInformer();
+		return _instance;
+	}
+	
 	Frame window;
 	String startTitle;
 	String listName;
@@ -13,11 +20,11 @@ public class TitleInformer implements IPicInfo {
 	String picName;
 	String process;
 	
-	public TitleInformer(Frame fr) {
+	public void setFrame(Frame fr) {
 		window = fr;
 		startTitle = window.getTitle();
 	}
-	
+
 	private void redraw() {
 		StringBuilder title = new StringBuilder();
 		title.append(startTitle+" - ");

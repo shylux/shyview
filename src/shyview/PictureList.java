@@ -23,7 +23,9 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 	public IPicture next() {
 		if (current() != null) current().interrupt();
 		index++;
-		if (isIndexInRange(index+1)) get(index + 1).preload();
+		preload(1);
+		preload(2);
+		preload(3);
 		return current();
 	}
 	
@@ -36,8 +38,14 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 	public IPicture previous() {
 		if (current() != null) current().interrupt();
 		index--;
-		if (isIndexInRange(index-1)) get(index - 1).preload();
+		preload(-1);
+		preload(-2);
+		preload(-3);
 		return current();
+	}
+	
+	private void preload(int delta_index) {
+		if (isIndexInRange(index+delta_index)) get(index+delta_index).preload();
 	}
 
 	@Override

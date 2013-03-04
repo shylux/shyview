@@ -77,12 +77,11 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
 	private Image errorimage = new ImageIcon(getClass().getResource("ErrorImage.jpg")).getImage();
 	private PicViewGUI parent;
-	private IPicInfo info;
 	private File favorite_folder = null;
 	private Preferences pref;
 	
 	Picturehandler(JMenu listcontainer, PicViewGUI parent) {
-		this.info = new TitleInformer(parent);
+		TitleInformer.getInstance().setFrame(parent);
 		this.parent = parent;
 		this.menuLists = listcontainer;
 		
@@ -133,7 +132,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			if (acpic() != null) acpic().flush();
 			if (mylist.next() == null) getNextList();
 		}
-		info.update(aclist());
+		TitleInformer.getInstance().update(aclist());
 		repaint();
 	}
 	public void getPrevious() {
@@ -141,7 +140,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			if (acpic() != null) acpic().flush();
 			if (mylist.previous() == null) this.getPreviousList();
 		}
-		info.update(aclist());
+		TitleInformer.getInstance().update(aclist());
 		repaint();
 	}
 	public IPicList getNextList() {
@@ -159,7 +158,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		if (list_index < 0) list_index = listlist.size() - 1;
 		this.mylist = listlist.get(list_index);
 		this.mylist.setIndex(0);
-		info.update(aclist());
+		TitleInformer.getInstance().update(aclist());
 		repaint();
 		return this.mylist;
 	}
@@ -199,10 +198,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public synchronized void addLists(List<IPicList> lists) {
 		listlist.addAll(lists);
 		redrawlists();
-	}
-	
-	public void setInformer(IPicInfo info) {
-		this.info = info;
 	}
 	
 	public boolean imageUpdate( ImageObserver imageObserver ) {
@@ -250,15 +245,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public void paint(Graphics g) {
 		super.paint(g);
 		
-		
-		this.info.update(aclist());
-
-		//bei resize nur umrisse anzeigen
-		/*if (this.isonresize || this.lastwidth != this.getWidth() || this.lastheight != this.getHeight()) {
-			System.out.println("bol:" + this.isonresize + " : lastw " + this.lastwidth + " acw " + this.getWidth());
-			return;
-		}*/
-		
+		TitleInformer.getInstance().update(aclist());
 	
 		int position[] = new int[2];
 		position[0] = 1;
@@ -267,18 +254,16 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 
 		if (count() != 0) {
 			//Load image
-			this.info.pushProcess("Loading picture");
+			TitleInformer.getInstance().pushProcess("Loading picture");
 			try {
 				
 				image = acpic().getPicture();
 			} catch (StillLoadingException e) {
-				repaint();
+				repaint(); // recursive. stack overflow possible.
 			} catch (FileNotFoundException e1) {
 				e1.printStackTrace();
 				mylist.remove(acpic());
-				if (aclist().size() == 0) {
-					this.info.clear();
-				}
+				TitleInformer.getInstance().clear();
 				if (this.errorimage == null) return;
 				image = this.errorimage;
 			}
@@ -302,19 +287,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		*/
 		//this.info.setVisible(false);
 		
-		if (image == null) {
-			this.aclist().remove(acpic());
-			this.repaint();
-			return;
-		}
-		
-		//Wenn image nicht geladen werden kann
-		if (image.getWidth(this) <= 0 || image.getHeight(this) <= 0) {
-			image = this.errorimage;
-			System.err.println("Can't load picture");
-		}
-		
-		this.info.pushProcess("Processing");
+		TitleInformer.getInstance().pushProcess("Processing");
 		
 		Graphics2D g2 = (Graphics2D)g;
 		BufferedImage output = Picturehandler.toBufferedImage(image);
@@ -433,7 +406,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			g2.drawImage(output, left - (height - width)/2, top  + (height - width)/2, height, width, this);
 			//g2.drawRect(left - (height - width)/2, top  + (height - width)/2, height, width);
 		}
-		this.info.finishProcess();
+		TitleInformer.getInstance().finishProcess();
 	}
 
 	public static BufferedImage blurImage(BufferedImage image) {
