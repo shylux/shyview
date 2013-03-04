@@ -8,7 +8,7 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 	private static final long serialVersionUID = 1L;
 	
 	String name = "Default";
-	int index;
+	int index = 0;
 	ShyviewMenu menuItem = null;
 	
 
@@ -50,6 +50,9 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 		index = i;
 	}
 
+	/**
+	 * Removes double entrys.
+	 */
 	@Override
 	public void cleanup() {
 		ArrayList<IPicture> newlist = new ArrayList<IPicture>();

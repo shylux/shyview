@@ -30,6 +30,7 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -60,6 +61,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import shyview.Picture.StillLoadingException;
 
 import webmate.IWebMateListener;
 @SuppressWarnings("serial")
@@ -103,7 +106,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		if (timer_delay > 0) this.setTimerdelay(timer_delay);
 	}
 	
-	public IPicture acpic() {
+	public IPicture acpic() throws NullPointerException {
 		if (mylist.size() == 0 && this.count() > 0) return this.getNextList().current();
 		return mylist.current();
 	}
@@ -260,14 +263,31 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		int position[] = new int[2];
 		position[0] = 1;
 		position[1] = 1;
-		Image image;
+		Image image = this.defaultimage;
 
-		//Load image
-		this.info.pushProcess("Loading picture");
+		if (count() != 0) {
+			//Load image
+			this.info.pushProcess("Loading picture");
+			try {
+				
+				image = acpic().getPicture();
+			} catch (StillLoadingException e) {
+				repaint();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+				mylist.remove(acpic());
+				if (aclist().size() == 0) {
+					this.info.clear();
+				}
+				if (this.errorimage == null) return;
+				image = this.errorimage;
+			}
+		}
+		/*
 		try {
 			while ((image = acpic().getPicture()) == null) {
 				System.err.println("Removed "+acpic().getName());
-				mylist.remove(acpic());
+				
 				mylist.remove(mylist.getIndex());
 			}
 			if (mylist.size() > 0)	{
@@ -279,6 +299,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			image = this.errorimage;
 			if (this.count() == 0) image = this.defaultimage;
 		}
+		*/
 		//this.info.setVisible(false);
 		
 		if (image == null) {
