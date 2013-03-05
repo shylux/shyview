@@ -66,6 +66,7 @@ public class TitleInformer implements IPicInfo {
 
 	@Override
 	public void pushProcess(String info) {
+		if (process == info) return;
 		process = info;
 		redraw();
 	}

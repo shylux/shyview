@@ -132,7 +132,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			if (acpic() != null) acpic().flush();
 			if (mylist.next() == null) getNextList();
 		}
-		TitleInformer.getInstance().update(aclist());
 		repaint();
 	}
 	public void getPrevious() {
@@ -140,7 +139,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			if (acpic() != null) acpic().flush();
 			if (mylist.previous() == null) this.getPreviousList();
 		}
-		TitleInformer.getInstance().update(aclist());
 		repaint();
 	}
 	public IPicList getNextList() {
@@ -158,7 +156,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		if (list_index < 0) list_index = listlist.size() - 1;
 		this.mylist = listlist.get(list_index);
 		this.mylist.setIndex(0);
-		TitleInformer.getInstance().update(aclist());
 		repaint();
 		return this.mylist;
 	}
@@ -259,8 +256,10 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 				
 				image = acpic().getPicture();
 			} catch (StillLoadingException e) {
+				System.out.println(System.currentTimeMillis()+" "+ acpic().getName() +" still loading..");
 				repaint(); // recursive. stack overflow possible.
 			} catch (FileNotFoundException e1) {
+				System.out.println("file not found");
 				e1.printStackTrace();
 				mylist.remove(acpic());
 				TitleInformer.getInstance().clear();

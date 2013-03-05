@@ -2,18 +2,16 @@ package shyview;
 
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.imageio.ImageIO;
 
@@ -47,7 +45,7 @@ public class Picture implements IPicture {
 
 	@Override
 	public Image getPicture() throws StillLoadingException, FileNotFoundException {
-		if (swapimage == null) preload();
+		if (swapimage == null || swapimage.isCancelled()) preload();
 		if (!swapimage.isDone()) throw new StillLoadingException();
 		Image tmp;
 		try {
@@ -85,13 +83,19 @@ public class Picture implements IPicture {
 	public void preload() {
 		//System.out.println("Preloading "+getName());
 		ExecutorService exs = Executors.newSingleThreadExecutor();
-		swapimage = exs.submit(new ImageLoadTask()); // start task
+		if (swapimage == null) {
+			System.out.println("preload "+getName());
+			swapimage = exs.submit(new ImageLoadTask()); // start task
+		}
 	}
 	class ImageLoadTask implements Callable<Image> {
 		public Image call() throws Exception {
 			if (swapimage.isDone()) return swapimage.get();
 			try {
-				return ImageIO.read(picres);
+				System.out.println(System.currentTimeMillis()+" "+ getName() +" start loading..");
+				BufferedImage img = ImageIO.read(picres);
+				System.out.println(System.currentTimeMillis()+" "+ getName() +" finished loading..");
+				return img;
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
