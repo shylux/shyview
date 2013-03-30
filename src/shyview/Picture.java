@@ -2,6 +2,8 @@ package shyview;
 
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,6 +23,7 @@ public class Picture implements IPicture {
 	private URL picres;
 	Future<Image> swapimage = null;
 	String alternative_name = null;
+	ActionListener listener;
 	
 	public Picture(URL url) {
 		picres = url;
@@ -82,19 +85,26 @@ public class Picture implements IPicture {
 	
 	public void preload() {
 		//System.out.println("Preloading "+getName());
-		ExecutorService exs = Executors.newSingleThreadExecutor();
 		if (swapimage == null) {
-			System.out.println("preload "+getName());
-			swapimage = exs.submit(new ImageLoadTask()); // start task
+			ExecutorService exs = Executors.newSingleThreadExecutor();
+			swapimage = exs.submit(new ImageLoadTask(this)); // start task
+		} else {
+			listener.actionPerformed(new ActionEvent(this, 0, "loading finished"));
 		}
 	}
 	class ImageLoadTask implements Callable<Image> {
+		Picture parent;
+		public ImageLoadTask(Picture parparent) {
+			parent = parparent;
+		}
 		public Image call() throws Exception {
 			if (swapimage.isDone()) return swapimage.get();
 			try {
 				System.out.println(System.currentTimeMillis()+" "+ getName() +" start loading..");
 				BufferedImage img = ImageIO.read(picres);
 				System.out.println(System.currentTimeMillis()+" "+ getName() +" finished loading..");
+				if (parent.listener != null) 
+					parent.listener.actionPerformed(new ActionEvent(parent, 0, "loading finished"));
 				return img;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -110,5 +120,9 @@ public class Picture implements IPicture {
 	@Override
 	public void setName(String name) {
 		alternative_name = name;
+	}
+	
+	public void setActionListener(ActionListener al) {
+		listener = al;
 	}
 }

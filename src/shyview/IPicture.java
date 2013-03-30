@@ -2,6 +2,7 @@ package shyview;
 
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 
 import shyview.Picture.StillLoadingException;
@@ -21,4 +22,6 @@ public interface IPicture {
 	 * Removes picture from cache to save memory.
 	 */
 	public void flush();
+	
+	public void setActionListener(ActionListener al);
 }

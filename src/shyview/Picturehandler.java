@@ -41,7 +41,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
@@ -84,7 +86,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		TitleInformer.getInstance().setFrame(parent);
 		this.parent = parent;
 		this.menuLists = listcontainer;
-		
 		listlist.add(mylist);
 		this.picturefilter.addExtension(".jpg");
 		this.picturefilter.addExtension(".png");
@@ -105,9 +106,13 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		if (timer_delay > 0) this.setTimerdelay(timer_delay);
 	}
 	
-	public IPicture acpic() throws NullPointerException {
-		if (mylist.size() == 0 && this.count() > 0) return this.getNextList().current();
-		return mylist.current();
+	public IPicture acpic() {
+		try {
+			return mylist.current();
+		} catch (NoSuchElementException e) {
+			this.getNextList();
+			return acpic();
+		}
 	}
 	public IPicList aclist() {
 		return mylist;

@@ -1,19 +1,26 @@
 package shyview;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
-public class PictureList extends LinkedList<IPicture> implements IPicList{
+public class PictureList extends LinkedList<IPicture> implements IPicList, ActionListener{
 	private static final long serialVersionUID = 1L;
+	public static final int PRELOAD_IMAGES = 5;
 	
 	String name = "Default";
-	int index = 0;
+	PositionIterator<IPicture> it;
 	ShyviewMenu menuItem = null;
 	
 
 	public PictureList(String parname) {
 		name = parname;
+		it = new PositionIterator<IPicture>(this);
 	}
 
 	public String getName() {
@@ -21,41 +28,29 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 	}
 	
 	public IPicture next() {
-		if (current() != null) current().interrupt();
-		index++;
-		preload(1);
-		preload(2);
-		preload(3);
-		return current();
+		it.current().interrupt();
+		it.next();
+		it.preview(1).preload();
+		return it.current();
 	}
 	
-	public IPicture current() {
-		if (index >= this.size() || index < 0) return null;
-		return this.get(index);
+	public IPicture current() throws NoSuchElementException {
+		return it.current();
 	}
 
 	@Override
-	public IPicture previous() {
-		if (current() != null) current().interrupt();
-		index--;
-		preload(-1);
-		preload(-2);
-		preload(-3);
-		return current();
-	}
-	
-	private void preload(int delta_index) {
-		if (isIndexInRange(index+delta_index)) get(index+delta_index).preload();
+	public IPicture previous() throws NoSuchElementException {
+		return it.previous();
 	}
 
 	@Override
 	public int getIndex() {
-		return index;
+		return it.getIndex();
 	}
 
 	@Override
 	public void setIndex(int i) {
-		index = i;
+		it.setIndex(i);
 	}
 
 	/**
@@ -89,8 +84,25 @@ public class PictureList extends LinkedList<IPicture> implements IPicList{
 		return menuItem;
 	}
 	
-	private boolean isIndexInRange(int index) {
-		return (index >= 0 && index < size());
+	public void free() {
+		for (PositionIterator<IPicture> i = new PositionIterator<IPicture>(this); i.hasNext();) {
+			i.next().flush();
+		}
+	}
+
+	public boolean add(IPicture p) {
+		p.setActionListener(this);
+		return super.add(p);
+	}
+	public boolean addAll(Collection<? extends IPicture> c) {
+		for (Iterator<? extends IPicture> i = c.iterator(); i.hasNext();) i.next().setActionListener(this);
+		return super.addAll(c);
 	}
 	
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		int i = it.getOffset((IPicture) e.getSource());
+		if (i >= 0 && i < PRELOAD_IMAGES)it.preview(i+1).preload();
+	}
 }

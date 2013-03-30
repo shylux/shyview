@@ -1,6 +1,7 @@
 package shyview;
 
 import java.awt.Frame;
+import java.util.NoSuchElementException;
 
 public class TitleInformer implements IPicInfo {
 	private static final String NOPICTURES = "No pictures available";
@@ -51,9 +52,10 @@ public class TitleInformer implements IPicInfo {
 	public void update(IPicList list) {
 		listName = list.getName();
 		listSize = list.size();
-		if (list.current() != null)
+		try {
 			picName = list.current().getName();
-		picPosition = list.getIndex()+1;
+			picPosition = list.getIndex()+1;
+		} catch (NoSuchElementException e) {}
 		redraw();
 	}
 

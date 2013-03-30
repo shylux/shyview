@@ -204,12 +204,12 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			this.setFullscreen();
 		
 		} else if (e.getSource() == mnuTimerDelay) {
-			String response = JOptionPane.showInputDialog(null, "Input change time in tenths of a second", "Timer Delay", JOptionPane.QUESTION_MESSAGE);
+			String response = JOptionPane.showInputDialog(null, "Picture showing time in seconds", "Timer Delay", JOptionPane.QUESTION_MESSAGE);
 			this.requestFocus();
 			if (response != null) {
 				Integer delay = Integer.parseInt(response);
 				if (delay > 0) {
-					this.picturebox.setTimerdelay(delay * 100);
+					this.picturebox.setTimerdelay(delay * 1000);
 				}
 			}
 		} else if (e.getSource() == mnuSetIndex) {
