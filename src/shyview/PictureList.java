@@ -103,6 +103,8 @@ public class PictureList extends LinkedList<IPicture> implements IPicList, Actio
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		int i = it.getOffset((IPicture) e.getSource());
-		if (i >= 0 && i < PRELOAD_IMAGES)it.preview(i+1).preload();
+		try {
+			if (i >= 0 && i < PRELOAD_IMAGES)it.preview(i+1).preload();
+		} catch (NoSuchElementException ex) {}
 	}
 }

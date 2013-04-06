@@ -3,6 +3,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
@@ -69,12 +70,13 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	private JMenuItem mnuPicResize;
 	private JMenu mnuFileClear;
 	private JCheckBoxMenuItem mnuTimerPing;
-	private JFrame Fullscreen;
+	private JFrame Fullscreen = new JFrame();
 	private Color DefaultBackgroundColor;
 	private Image Icon15x15 = new ImageIcon(getClass().getResource("Icon15x15.png")).getImage();
 	private Image Icon30x30 = new ImageIcon(getClass().getResource("Icon30x30.png")).getImage();
 	private ArrayList<Image> icons = new ArrayList<Image>();
 	private Timer mousetimer = new Timer(3000, this);
+	private Cursor defaultCursor;
 	
 	/**
 	* Auto-generated main method to display this JFrame
@@ -115,7 +117,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			
 			this.addKeyListener(this);
 			this.addMouseListener(this);
-			this.add(this.preview);
 			this.preview.startTimer();
 			{
 				mnuMenu = new JMenuBar();
@@ -169,6 +170,9 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			}
 			this.addWindowListener(this);
 			this.addComponentListener(this);
+			this.addMouseMotionListener(this); 
+			this.defaultCursor = this.getCursor();
+			this.mousetimer.start();
 			//pack();
 			setSize(500, 400);
 			this.repaint();
@@ -233,6 +237,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
 			Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
 			this.Fullscreen.setCursor(transparentCursor);
+			this.setCursor(transparentCursor);
 		} else if (e.getSource() == mnuDB) {
 			this.setTitle("haaaaa");
 		}
@@ -310,27 +315,26 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			break;
 		}
 	}
+	
 	public boolean isFullscreen = false;
+	
 	public void setFullscreen() {
+		GraphicsConfiguration config = this.getGraphicsConfiguration();
+		GraphicsDevice device = config.getDevice();
 		this.isFullscreen = !this.isFullscreen;
 		if (this.isFullscreen) {
-			this.mousetimer.start();
+			this.setVisible(false);
 			this.DefaultBackgroundColor = picturebox.getBackground();
 			picturebox.setBackground(Color.BLACK);
 			this.setVisible(false);
+			
 			this.Fullscreen = new JFrame();
 			Fullscreen.addKeyListener(this);
-			Fullscreen.addMouseListener(this);
 			Fullscreen.addMouseMotionListener(this); 
 			Fullscreen.add(picturebox);
-			Fullscreen.setLocation(0, 0);
-			Fullscreen.setSize(java.awt.Toolkit.getDefaultToolkit().getScreenSize());
 			Fullscreen.setUndecorated(true);
-			Fullscreen.setIconImages(this.icons);
-			Fullscreen.toFront();
-			Fullscreen.setVisible(true);
+			device.setFullScreenWindow(Fullscreen);
 		} else {
-			this.mousetimer.stop();
 			this.Fullscreen.remove(picturebox);
 			this.Fullscreen.setVisible(false);
 			this.setVisible(true);
@@ -344,6 +348,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 		}
 		
 	}
+
 	public void setFullscreen2() {
         GraphicsDevice[] devices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 		if (devices[0].isFullScreenSupported()) {
@@ -463,7 +468,8 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	public void mouseDragged(MouseEvent arg0) {}
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
-		if (this.Fullscreen != null) this.Fullscreen.setCursor(this.getCursor());
+		this.setCursor(defaultCursor);
+		if (this.Fullscreen != null) this.Fullscreen.setCursor(defaultCursor);
 		//System.out.println("0: " + lastsize[0] + " 1: " + lastsize[1] + " Now: 0:" + Window.WIDTH + " 1: " + Window.HEIGHT); 
 	}
 	
