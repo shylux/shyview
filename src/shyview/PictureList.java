@@ -27,10 +27,12 @@ public class PictureList extends LinkedList<IPicture> implements IPicList, Actio
 		return name;
 	}
 	
-	public IPicture next() {
+	public IPicture next() throws NoSuchElementException {
 		it.current().interrupt();
 		it.next();
-		it.preview(1).preload();
+		try {
+			it.preview(1).preload();
+		} catch (NoSuchElementException e) {}
 		return it.current();
 	}
 	
@@ -40,7 +42,12 @@ public class PictureList extends LinkedList<IPicture> implements IPicList, Actio
 
 	@Override
 	public IPicture previous() throws NoSuchElementException {
-		return it.previous();
+		it.current().interrupt();
+		it.previous();
+		try {
+			it.preview(-1).preload();
+		} catch (NoSuchElementException e) {}
+		return it.current();
 	}
 
 	@Override
@@ -50,7 +57,9 @@ public class PictureList extends LinkedList<IPicture> implements IPicList, Actio
 
 	@Override
 	public void setIndex(int i) {
-		it.setIndex(i);
+		try {
+			it.setIndex(i);
+		} catch (ArrayIndexOutOfBoundsException e) {}
 	}
 
 	/**

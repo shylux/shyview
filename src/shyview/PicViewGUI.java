@@ -236,7 +236,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			int[] pixels = new int[16 * 16];
 			Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
 			Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
-			this.Fullscreen.setCursor(transparentCursor);
+			if (this.Fullscreen != null) this.Fullscreen.setCursor(transparentCursor);
 			this.setCursor(transparentCursor);
 		} else if (e.getSource() == mnuDB) {
 			this.setTitle("haaaaa");

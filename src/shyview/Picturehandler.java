@@ -101,8 +101,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		
 		pref = Preferences.userNodeForPackage(getClass());
 
-		int timer_delay = pref.getInt("timer_delay", 300);
-		System.out.println(timer_delay);
+		int timer_delay = pref.getInt("timer_delay", 30);
 		if (timer_delay > 0) this.setTimerdelay(timer_delay);
 	}
 	
@@ -110,6 +109,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		try {
 			return mylist.current();
 		} catch (NoSuchElementException e) {
+			if (count() == 0) return null;
 			this.getNextList();
 			return acpic();
 		}
@@ -135,14 +135,22 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public void getNext() {
 		if (mylist != null) {
 			if (acpic() != null) acpic().flush();
-			if (mylist.next() == null) getNextList();
+			try {
+				mylist.next();
+			} catch (NoSuchElementException e) {
+				getNextList();
+			}
 		}
 		repaint();
 	}
 	public void getPrevious() {
 		if (mylist != null) {
 			if (acpic() != null) acpic().flush();
-			if (mylist.previous() == null) this.getPreviousList();
+			try {
+				mylist.previous();
+			} catch (NoSuchElementException e) {
+				getPreviousList();
+			}
 		}
 		repaint();
 	}
