@@ -22,6 +22,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.MemoryImageSource;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TimerTask;
 import java.util.prefs.Preferences;
@@ -37,6 +39,8 @@ import javax.swing.JOptionPane;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.SwingUtilities;
+
+import shyview.Picture.StillLoadingException;
 
 import webmate.MateServer;
 
@@ -270,38 +274,16 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 		case KeyEvent.VK_PAGE_UP:
 			this.picturebox.getPreviousList();
 			break;
-		case KeyEvent.VK_M:
-			switch (picturebox.getRotation()) {
-			case 0:
-				picturebox.setRotation(270);
-				break;
-			case 90:
-				picturebox.setRotation(0);
-				break;
-			case 180:
-				picturebox.setRotation(90);
-				break;
-			case 270:
-				picturebox.setRotation(180);
-				break;
-			}
-			break;
 		case KeyEvent.VK_N:
-			switch (picturebox.getRotation()) {
-			case 0:
-				picturebox.setRotation(90);
-				break;
-			case 90:
-				picturebox.setRotation(180);
-				break;
-			case 180:
-				picturebox.setRotation(270);
-				break;
-			case 270:
-				picturebox.setRotation(0);
-				break;
-			}
+			int newRotation = ((picturebox.getRotation() - 90) < 0) ? 270 : picturebox.getRotation() - 90;
+			picturebox.setRotation(newRotation);
 			break;
+		case KeyEvent.VK_M:
+			newRotation = ((picturebox.getRotation() + 90) >= 360) ? 0 : picturebox.getRotation() + 90;
+			picturebox.setRotation(newRotation);
+			break;
+		case KeyEvent.VK_F:
+				picturebox.favoritePicture();
 		default:
 			break;
 		}

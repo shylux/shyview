@@ -34,6 +34,7 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
 import java.awt.image.MemoryImageSource;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,6 +53,8 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
@@ -84,7 +87,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
 	private Image errorimage = new ImageIcon(getClass().getResource("ErrorImage.jpg")).getImage();
 	private PicViewGUI parent;
-	private File favorite_folder = null;
 	private Preferences pref;
 	private Timer mouseHideTimer = new Timer(4000, this);
 	
@@ -615,23 +617,9 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.listlist = new ArrayList<IPicList>();
 	}
 
-	@Override
-	public void dragEnter(DropTargetDragEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dragExit(DropTargetEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dragOver(DropTargetDragEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void dragEnter(DropTargetDragEvent arg0) {}
+	public void dragExit(DropTargetEvent arg0) {}
+	public void dragOver(DropTargetDragEvent arg0) {}
 	
 	private static final String URI_LIST_MIME_TYPE = "text/uri-list;class=java.lang.String";
 
@@ -758,10 +746,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 					for (File f: dir) {
 						try {
 							this.getList(new File(f.getParent()).getAbsolutePath()).add(new Picture(f.getAbsoluteFile()));
-						} catch (MalformedURLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						} catch (MalformedURLException e) {e.printStackTrace();}
 					}
 				}
 			}
@@ -769,6 +754,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 
 		this.getList(new File(files.get(0).getParent()).getName()).addAll(convertFileArray(topdir));
 	}
+	/* Deepfolder adds the images in lists realative to the first parent directory */
 	public void setDeepfolder(boolean newvalue) {
 		this.deepfolder = newvalue;
 	}
@@ -780,10 +766,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		for (File f: c) {
 			try {
 				pic.add(new Picture(f));
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (MalformedURLException e) {e.printStackTrace();}
 		}
 		return pic;
 	}
@@ -792,10 +775,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		for (String s: c) {
 			try {
 				pic.add(new Picture(s));
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (MalformedURLException e) {e.printStackTrace();}
 		}
 		return pic;
 	}
@@ -820,15 +800,37 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	}
 	
 	@Override
-	public void dropActionChanged(DropTargetDragEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void dropActionChanged(DropTargetDragEvent arg0) {}
+	
 	public boolean isWindows() {
 		String osname = System.getProperty("os.name");
 		return osname.startsWith("Windows");
 	}
 
+	/*
+	 * Copy the current picture to the "favorites" folder. 
+	 */
+	public void favoritePicture() {
+		try {
+			ImageIO.write((RenderedImage) acpic().getPicture(), "png", new File(getSubFavoriteFolder(aclist().getName()), acpic().getName()));
+		} catch (StillLoadingException e) {e.printStackTrace();
+		} catch (FileNotFoundException e) {e.printStackTrace();
+		} catch (IOException e) {e.printStackTrace();} // extension parameter gets ignored on win7; checking other systems
+	}
+	
+	public File getFavoriteFolder() {
+		File favoriteFolder = new File(System.getProperty("user.home"), "Shyview Favorites");
+		if (!favoriteFolder.exists()) favoriteFolder.mkdirs();
+		return favoriteFolder;
+	}
+	
+	public File getSubFavoriteFolder(String dirname) {
+		File subfav = new File(getFavoriteFolder(), dirname);
+		if (!subfav.exists()) subfav.mkdir();
+		return subfav;
+	}
+	
+	/* rotation */
 	public int rotation = 0;
 	public void setRotation(int grad) {
 		System.out.println("set rotation to " + grad);
@@ -862,18 +864,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		//} catch (IOException e) {e.printStackTrace();}
 	}
 	*/
-	public File get_favorite_folder() {
-		if (this.favorite_folder == null || !this.favorite_folder.exists()) {
-			//new File(util.Filesystem.getUserHomeString(), "Shyview Favorites").mkdir();
-		}
-		//return new File(util.Filesystem.getUserHomeString(), "Shyview Favorites");
-		return new File("/");
-	}
-	public File get_sub_favorite_folder(String dirname) {
-		File tmpf = new File(get_favorite_folder(), dirname);
-		if (!tmpf.exists()) tmpf.mkdir();
-		return tmpf;
-	}
+
 	
 	@Override
 	public void onWebMateData(String data) {
