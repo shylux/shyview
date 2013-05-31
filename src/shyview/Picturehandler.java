@@ -83,7 +83,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private ShyluxFileFilter jsonfilter = new ShyluxFileFilter();
 	private IPicList mylist = new PictureList("Default");
 	private JMenu menuLists;
-	private Timer timer = new Timer(1000, this);
+	private Timer picChangeTimer = new Timer(1000, this);
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
 	private Image errorimage = new ImageIcon(getClass().getResource("ErrorImage.jpg")).getImage();
 	private PicViewGUI parent;
@@ -138,12 +138,8 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public void addPicture(String Path, String list) {
 		try {
 			this.getList(list).add(new Picture(Path));
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (MalformedURLException e) {e.printStackTrace();}
 		this.repaint();
-		//this.image = newpic.getPicture();
 	}
 	public void addPicture(IPicture pic, String list) {
 		this.getList(list).add(pic);
@@ -158,6 +154,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 				getNextList();
 			}
 		}
+		picChangeTimer.restart();
 		repaint();
 	}
 	public void getPrevious() {
@@ -169,6 +166,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 				getPreviousList();
 			}
 		}
+		picChangeTimer.restart();
 		repaint();
 	}
 	public IPicList getNextList() {
@@ -242,21 +240,21 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	
 	public void setTimerdelay(int delay) {
 		pref.putInt("timer_delay", delay);
-		this.timer.setDelay(delay);
+		this.picChangeTimer.setInitialDelay(delay);
 	}
 	public int getTimerdelay() {
-		return this.timer.getDelay();
+		return this.picChangeTimer.getDelay();
 	}
 	
 	public void startTimer() {
-		this.timer.start();
+		this.picChangeTimer.start();
 	}
 	public void toggleTimer() {
-		if (this.timer.isRunning()) this.timer.stop();
-		else this.timer.start();
+		if (this.picChangeTimer.isRunning()) this.picChangeTimer.stop();
+		else this.picChangeTimer.start();
 	}
 	public boolean isTimerRunning() {
-		return this.timer.isRunning();
+		return this.picChangeTimer.isRunning();
 	}
 	
 	public IPicList getList(String listname) {
@@ -571,7 +569,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.timer) {
+		if (e.getSource() == this.picChangeTimer) {
 			this.getNext();
 			return;
 		} else if (e.getSource() == this.mouseHideTimer) {
@@ -935,6 +933,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	public void mouseDragged(MouseEvent arg0) {}
 	@Override // show cursor
 	public void mouseMoved(MouseEvent arg0) {
+		this.mouseHideTimer.restart();
 		this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 	// hide cursor
