@@ -13,5 +13,6 @@ public interface IPicList extends java.util.List<IPicture> {
 	void sort();
 	ShyviewMenu getMenuItem();
 	
+	@SuppressWarnings("serial")
 	public class NoRessourceAvailable extends Exception {};
 }

@@ -1,14 +1,11 @@
 package shyview;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,12 +15,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.image.MemoryImageSource;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TimerTask;
 import java.util.prefs.Preferences;
@@ -36,11 +29,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.SwingUtilities;
-
-import shyview.Picture.StillLoadingException;
 
 import webmate.MateServer;
 
@@ -79,7 +69,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	private Image Icon15x15 = new ImageIcon(getClass().getResource("Icon15x15.png")).getImage();
 	private Image Icon30x30 = new ImageIcon(getClass().getResource("Icon30x30.png")).getImage();
 	private ArrayList<Image> icons = new ArrayList<Image>();
-	private Cursor defaultCursor;
 	
 	/**
 	* Auto-generated main method to display this JFrame
@@ -173,7 +162,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			}
 			this.addWindowListener(this);
 			this.addComponentListener(this);
-			this.defaultCursor = this.getCursor();
 			//pack();
 			setSize(500, 400);
 			this.repaint();
@@ -399,7 +387,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			//System.out.println(p2);
 			this.preview.setLocation(p);
 			this.preview.clear();
-			String sitem = item.getText();
 			//List list = this.picturebox.getList(sitem).clone();
 			//this.preview.restartTimer();
 			//TODO uncomment

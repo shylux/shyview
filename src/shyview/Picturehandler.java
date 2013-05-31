@@ -47,15 +47,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -658,7 +655,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	    //Linux
 		} else {
 			Transferable transferable = e.getTransferable();
-		    DefaultListModel model = new DefaultListModel();
 
 		    e.acceptDrop(DnDConstants.ACTION_MOVE);
 
@@ -670,12 +666,8 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		    }
 
 		    try {
-		      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-		        ArrayList<?> data = (ArrayList<?>) transferable.getTransferData(DataFlavor.javaFileListFlavor);		        
-		     	
-		        for (Object o : data) {
-		          model.addElement(o);
-		        }
+		      if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {	        
+
 		      } else if (transferable.isDataFlavorSupported(uriListFlavor)) {
 		        String data = (String) transferable.getTransferData(uriListFlavor);
 		        ArrayList<File> files = textURIListToFileList(data);

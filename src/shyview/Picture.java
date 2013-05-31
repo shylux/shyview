@@ -18,7 +18,6 @@ import java.util.concurrent.Future;
 import javax.imageio.ImageIO;
 
 public class Picture implements IPicture {
-	private final static int MAX_IMAGE_LOADING_TIME = 5; // seconds
 	
 	private URL picres;
 	Future<Image> swapimage = null;
