@@ -55,7 +55,7 @@ import MenuScroller.MenuScroller;
 * THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
 * LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
 */
-public class PicViewGUI extends javax.swing.JFrame implements ActionListener, KeyListener, WindowListener, ComponentListener, MouseListener, MouseMotionListener  {
+public class PicViewGUI extends javax.swing.JFrame implements ActionListener, KeyListener, WindowListener, ComponentListener, MouseListener  {
 	static PicViewGUI inst;
 	private static final long serialVersionUID = -5201406955074046739L;
 	private JMenuBar mnuMenu;
@@ -75,7 +75,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	private Image Icon15x15 = new ImageIcon(getClass().getResource("Icon15x15.png")).getImage();
 	private Image Icon30x30 = new ImageIcon(getClass().getResource("Icon30x30.png")).getImage();
 	private ArrayList<Image> icons = new ArrayList<Image>();
-	private Timer mousetimer = new Timer(3000, this);
 	private Cursor defaultCursor;
 	
 	/**
@@ -170,9 +169,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			}
 			this.addWindowListener(this);
 			this.addComponentListener(this);
-			this.addMouseMotionListener(this); 
 			this.defaultCursor = this.getCursor();
-			this.mousetimer.start();
 			//pack();
 			setSize(500, 400);
 			this.repaint();
@@ -232,12 +229,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			for (int i = 0; i < mnuLists.getItemCount(); i++) {
 				mnuLists.getItem(i).addMouseListener(this);
 			}
-		} else if (e.getSource() == mousetimer) {
-			int[] pixels = new int[16 * 16];
-			Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
-			Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
-			if (this.Fullscreen != null) this.Fullscreen.setCursor(transparentCursor);
-			this.setCursor(transparentCursor);
 		} else if (e.getSource() == mnuDB) {
 			this.setTitle("haaaaa");
 		}
@@ -329,8 +320,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			this.setVisible(false);
 			
 			this.Fullscreen = new JFrame();
-			Fullscreen.addKeyListener(this);
-			Fullscreen.addMouseMotionListener(this); 
+			Fullscreen.addKeyListener(this); 
 			Fullscreen.add(picturebox);
 			Fullscreen.setUndecorated(true);
 			device.setFullScreenWindow(Fullscreen);
@@ -347,21 +337,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			this.setSize(this.getWidth() + 1, this.getHeight() + 1);
 		}
 		
-	}
-
-	public void setFullscreen2() {
-        GraphicsDevice[] devices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-		if (devices[0].isFullScreenSupported()) {
-			if (!this.isFullscreen) {
-				this.isFullscreen = true;
-				this.setUndecorated(true);
-				devices[0].setFullScreenWindow(this);
-				devices[0].setFullScreenWindow(null);
-			} else {
-			}
-		} else {
-			System.out.println("Not Supported");
-		}
 	}
 
 	@Override
@@ -463,15 +438,6 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 	}
 	
 	int[] lastsize;
-
-	@Override
-	public void mouseDragged(MouseEvent arg0) {}
-	@Override
-	public void mouseMoved(MouseEvent arg0) {
-		this.setCursor(defaultCursor);
-		if (this.Fullscreen != null) this.Fullscreen.setCursor(defaultCursor);
-		//System.out.println("0: " + lastsize[0] + " 1: " + lastsize[1] + " Now: 0:" + Window.WIDTH + " 1: " + Window.HEIGHT); 
-	}
 	
 	/*
 	public void settitle(String ntitle) {

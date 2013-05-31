@@ -1,6 +1,7 @@
 package shyview;
 
 import java.awt.AlphaComposite;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -9,7 +10,9 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.RenderingHints.Key;
 import java.awt.Transparency;
 import java.awt.datatransfer.DataFlavor;
@@ -24,11 +27,13 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
+import java.awt.image.MemoryImageSource;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -68,7 +73,7 @@ import shyview.Picture.StillLoadingException;
 
 import webmate.IWebMateListener;
 @SuppressWarnings("serial")
-public class Picturehandler extends JPanel implements ImageObserver, ActionListener, DropTargetListener, IWebMateListener {
+public class Picturehandler extends JPanel implements ImageObserver, ActionListener, DropTargetListener, IWebMateListener, MouseMotionListener {
 	private ArrayList<IPicList>  listlist = new ArrayList<IPicList>();
 	private int list_index = 0;
 	private ShyluxFileFilter picturefilter = new ShyluxFileFilter();
@@ -81,6 +86,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	private PicViewGUI parent;
 	private File favorite_folder = null;
 	private Preferences pref;
+	private Timer mouseHideTimer = new Timer(4000, this);
 	
 	Picturehandler(JMenu listcontainer, PicViewGUI parent) {
 		TitleInformer.getInstance().setFrame(parent);
@@ -93,16 +99,25 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.picturefilter.addExtension(".jpeg");
 		this.picturefilter.addExtension(".bmp");
 		this.picturefilter.addExtension(".img");
-
 	    this.jsonfilter.addExtension(".json");
+	    
+	    // display default pic
 		repaint();
 		this.redrawlists();
+		
+		// dropping images/folders
 		new DropTarget(this, this);
 		
+		// preferences
 		pref = Preferences.userNodeForPackage(getClass());
 
+		// default delay
 		int timer_delay = pref.getInt("timer_delay", 30);
 		if (timer_delay > 0) this.setTimerdelay(timer_delay);
+		
+		// mouse hide timer
+		this.addMouseMotionListener(this); 
+		this.mouseHideTimer.start();
 	}
 	
 	public IPicture acpic() {
@@ -557,17 +572,20 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		if (e.getSource() == this.timer) {
 			this.getNext();
 			return;
-		}
-		
-		JMenuItem source = (JMenuItem) e.getSource();
-		for (IPicList l: listlist) {
-			if (l.getMenuItem().equals(source)) {
-				setList(l);
-				break;
+		} else if (e.getSource() == this.mouseHideTimer) {
+			hideMouse();
+		} else {
+			JMenuItem source = (JMenuItem) e.getSource();
+			for (IPicList l: listlist) {
+				if (l.getMenuItem().equals(source)) {
+					setList(l);
+					break;
+				}
 			}
+			this.repaint();
 		}
 
-		this.repaint();
+		
 		
 	}
 	
@@ -918,5 +936,21 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			out.add(ch);
 		}
 		return out;
+	}
+
+	
+	/* Used to hide Cursor */
+	@Override
+	public void mouseDragged(MouseEvent arg0) {}
+	@Override // show cursor
+	public void mouseMoved(MouseEvent arg0) {
+		this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+	}
+	// hide cursor
+	private void hideMouse() {
+		int[] pixels = new int[16 * 16];
+		Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
+		Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
+		this.setCursor(transparentCursor);
 	}
 }
