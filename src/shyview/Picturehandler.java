@@ -77,11 +77,11 @@ import shyview.Picture.StillLoadingException;
 import webmate.IWebMateListener;
 @SuppressWarnings("serial")
 public class Picturehandler extends JPanel implements ImageObserver, ActionListener, DropTargetListener, IWebMateListener, MouseMotionListener {
-	private ArrayList<IPicList>  listlist = new ArrayList<IPicList>();
-	private int list_index = 0;
+	private ArrayList<IPicList>  picListList = new ArrayList<IPicList>();
+	private PositionIterator<IPicList> picListIt = new PositionIterator<IPicList>(picListList);
 	private ShyluxFileFilter picturefilter = new ShyluxFileFilter();
 	private ShyluxFileFilter jsonfilter = new ShyluxFileFilter();
-	private IPicList mylist = new PictureList("Default");
+	//private IPicList mylist = new PictureList("Default");
 	private JMenu menuLists;
 	private Timer picChangeTimer = new Timer(1000, this);
 	private Image defaultimage = new ImageIcon(getClass().getResource("DefaultImage.gif")).getImage();
@@ -94,7 +94,6 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		TitleInformer.getInstance().setFrame(parent);
 		this.parent = parent;
 		this.menuLists = listcontainer;
-		listlist.add(mylist);
 		this.picturefilter.addExtension(".jpg");
 		this.picturefilter.addExtension(".png");
 		this.picturefilter.addExtension(".gif");
@@ -124,17 +123,14 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	
 	public IPicture acpic() {
 		try {
-			return mylist.current();
+			return picListIt.current().current();
 		} catch (NoSuchElementException e) {
 			if (count() == 0) return null;
 			this.getNextList();
 			return acpic();
 		}
 	}
-	public IPicList aclist() {
-		return mylist;
-	}
-	
+
 	public void addPicture(String Path, String list) {
 		try {
 			this.getList(list).add(new Picture(Path));
@@ -146,69 +142,71 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.repaint();
 	}
 	public void getNext() {
-		if (mylist != null) {
-			if (acpic() != null) acpic().flush();
-			try {
-				mylist.next();
-			} catch (NoSuchElementException e) {
-				getNextList();
+		try {
+			if (picListIt.current() != null) {
+				if (acpic() != null) acpic().flush();
+				try {
+					picListIt.current().next();
+				} catch (NoSuchElementException e) {
+					getNextList();
+				}
 			}
-		}
-		picChangeTimer.restart();
-		repaint();
+			picChangeTimer.restart();
+			repaint();
+		} catch (NoSuchElementException e) {}
 	}
 	public void getPrevious() {
-		if (mylist != null) {
-			if (acpic() != null) acpic().flush();
-			try {
-				mylist.previous();
-			} catch (NoSuchElementException e) {
-				getPreviousList();
+		try {
+			if (picListIt.current() != null) {
+				if (acpic() != null) acpic().flush();
+				try {
+					picListIt.current().previous();
+				} catch (NoSuchElementException e) {
+					getPreviousList();
+				}
 			}
-		}
-		picChangeTimer.restart();
-		repaint();
+			picChangeTimer.restart();
+			repaint();
+		} catch (NoSuchElementException e) {}
 	}
 	public IPicList getNextList() {
-		if (this.listlist.size() == 0) return new PictureList("Default");
-		list_index += 1;
-		if (listlist.size() - 1 < list_index) list_index = 0;
-		this.mylist = listlist.get(list_index);
-		this.mylist.setIndex(0);
+		if (picListList.size() == 0) return new PictureList("Default");
+		if (picListIt.hasNext()) 
+			picListIt.next();
+		else 
+			picListIt.setIndex(0);
+		picListIt.current().setIndex(0);
 		repaint();
-		return this.mylist;
+		return picListIt.current();
 	}
 	public IPicList getPreviousList() {
-		if (this.listlist.size() == 0) return new PictureList("Default");
-		list_index -= 1;
-		if (list_index < 0) list_index = listlist.size() - 1;
-		this.mylist = listlist.get(list_index);
-		this.mylist.setIndex(0);
+		if (picListList.size() == 0) return new PictureList("Default");
+		if (picListIt.hasPrevious())
+			picListIt.previous();
+		else
+			picListIt.setIndex(picListList.size()-1);
+		picListIt.current().setIndex(0);
 		repaint();
-		return this.mylist;
+		return picListIt.current();
 	}
 	public void setList(String listname) {
 		//for (List list: this.listlist) {
-		for (int i = 0; i < this.listlist.size(); i++) {
-			IPicList list = this.listlist.get(i);
-			if (list.getName() == listname) { 
+		for (IPicList list: picListList) {
+			if (list.getName().equals(listname)) {
 				acpic().flush();
-				this.mylist = list;
-				this.list_index = i;
-				mylist.setIndex(0);
+				picListIt.set(list);
+				picListIt.current().setIndex(0);
 			}
 		}
+
 	}
 	public void setList(IPicList list) {
-		list_index = this.listlist.indexOf(list);
-		this.mylist = list;
-		mylist.setIndex(0);
+		picListIt.set(list);
+		picListIt.setIndex(0);
 	}
 	public void setList(int index) {
-		if (index > this.listlist.size()) index = 0;
-		this.list_index = index;
-		this.mylist = this.listlist.get(index);
-		this.mylist.setIndex(0);
+		picListIt.setIndex(index);
+		picListIt.current().setIndex(0);
 	}
 	
 	/**
@@ -216,12 +214,12 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	 * @param i index. first element is 0
 	 */
 	public void setPictureIndex(int i) {
-		aclist().setIndex(i);
+		picListIt.current().setIndex(i);
 		repaint();
 	}
 	
 	public synchronized void addLists(List<IPicList> lists) {
-		listlist.addAll(lists);
+		picListList.addAll(lists);
 		redrawlists();
 	}
 	
@@ -232,7 +230,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 
 	public int count() {
 		int value = 0;
-		for (IPicList list: this.listlist) {
+		for (IPicList list: picListList) {
 			value += list.size();
 		}
 		return value;
@@ -258,19 +256,20 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	}
 	
 	public IPicList getList(String listname) {
-		for (IPicList list: this.listlist) {
+		for (IPicList list: picListList) {
 			String listename = list.getName();
 			if (listename.equals(listname)) return list;
 		}
 		IPicList newlist = new PictureList(listname);		
-		this.listlist.add(newlist);	
+		picListList.add(newlist);	
 		return newlist;
 	}
 	
 	public void paint(Graphics g) {
 		super.paint(g);
 		
-		TitleInformer.getInstance().update(aclist());
+		if (picListIt.hasCurrent())
+			TitleInformer.getInstance().update(picListIt.current());
 	
 		int position[] = new int[2];
 		position[0] = 1;
@@ -289,30 +288,12 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			} catch (FileNotFoundException e1) {
 				System.out.println("file not found");
 				e1.printStackTrace();
-				mylist.remove(acpic());
+				picListIt.current().remove(acpic());
 				TitleInformer.getInstance().clear();
 				if (this.errorimage == null) return;
 				image = this.errorimage;
 			}
 		}
-		/*
-		try {
-			while ((image = acpic().getPicture()) == null) {
-				System.err.println("Removed "+acpic().getName());
-				
-				mylist.remove(mylist.getIndex());
-			}
-			if (mylist.size() > 0)	{
-			} else {
-				this.info.clear();
-			}
-		} catch (Exception e) {
-			if (this.errorimage == null) return;
-			image = this.errorimage;
-			if (this.count() == 0) image = this.defaultimage;
-		}
-		*/
-		//this.info.setVisible(false);
 		
 		TitleInformer.getInstance().pushProcess("Processing");
 		
@@ -541,7 +522,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 
 	public void redrawlists() {
 		this.menuLists.removeAll();
-		for (IPicList list: this.listlist) {
+		for (IPicList list: picListList) {
 			if (list.size() == 0) continue;
 			//JMenuItem item = new JMenuItem();
 			this.menuLists.add(list.getMenuItem());
@@ -576,7 +557,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 			hideMouse();
 		} else {
 			JMenuItem source = (JMenuItem) e.getSource();
-			for (IPicList l: listlist) {
+			for (IPicList l: picListList) {
 				if (l.getMenuItem().equals(source)) {
 					setList(l);
 					break;
@@ -590,29 +571,23 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	}
 	
 	public void clear() {
-		this.mylist = new PictureList("Default");
-		this.listlist = new ArrayList<IPicList>();
+		picListList = new ArrayList<IPicList>();
 		this.redrawlists();
 		this.repaint();
 	}
 	
 	public void cleanuplists() {
-		for (IPicList l: this.listlist) {
+		for (IPicList l: picListList) {
 			l.cleanup();
 		}
-		for (int i = 0; i < this.listlist.size(); i++) {
-			IPicList list = this.listlist.get(i);
-			if (list.size() == 0) this.removelist(list.getName());
+		for (IPicList l: picListList) {
+			if (l.size() == 0) picListList.remove(l);
 		}
 	}
 	public void removelist(String listname) {
-		for (int i = 0; i < this.listlist.size(); i++) {
-			String tmpname = this.listlist.get(i).getName();
-			if (tmpname.equals(listname)) this.listlist.remove(this.listlist.get(i));
+		for (IPicList list: picListList) {
+			if (list.getName().equals(listname)) picListList.remove(list);
 		}
-	}
-	public void removelistall() {
-		this.listlist = new ArrayList<IPicList>();
 	}
 
 	public void dragEnter(DropTargetDragEvent arg0) {}
@@ -810,7 +785,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	 */
 	public void favoritePicture() {
 		try {
-			ImageIO.write((RenderedImage) acpic().getPicture(), "png", new File(getSubFavoriteFolder(aclist().getName()), acpic().getName()));
+			ImageIO.write((RenderedImage) acpic().getPicture(), "png", new File(getSubFavoriteFolder(picListIt.current().getName()), acpic().getName()));
 		} catch (StillLoadingException e) {e.printStackTrace();
 		} catch (FileNotFoundException e) {e.printStackTrace();
 		} catch (IOException e) {e.printStackTrace();} // extension parameter gets ignored on win7; checking other systems
@@ -841,15 +816,16 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 	}
 
 	public void addList(IPicList newlist) {
-		this.listlist.add(newlist);
+		picListList.add(newlist);
 	}
 	
 	public void sort() {
-		for (IPicList lst: this.listlist) {
+		for (IPicList lst: picListList) {
 			lst.sort();
 		}
 		ShyviewComparator.ListComparator comp = (new ShyviewComparator()).new ListComparator();
-		Collections.sort(this.listlist, comp);
+		Collections.sort(picListList, comp);
+		picListIt = new PositionIterator<IPicList>(picListList);
 		this.redrawlists();
 	}
 	/*
@@ -870,7 +846,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		ArrayList<IPicList> newlists = Picturehandler.loadChapter(data);
 		addLists(newlists);
 		sort();
-		list_index = 0;
+		picListIt.setIndex(0);
 		repaint();
 	}
 	

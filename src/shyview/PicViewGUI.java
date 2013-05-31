@@ -398,7 +398,7 @@ public class PicViewGUI extends javax.swing.JFrame implements ActionListener, Ke
 			Point p = new Point(item.getLocationOnScreen().x - this.getLocationOnScreen().x + item.getWidth(), item.getLocation().y);
 			//System.out.println(p2);
 			this.preview.setLocation(p);
-			this.preview.removelistall();
+			this.preview.clear();
 			String sitem = item.getText();
 			//List list = this.picturebox.getList(sitem).clone();
 			//this.preview.restartTimer();

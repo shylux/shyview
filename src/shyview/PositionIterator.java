@@ -48,6 +48,10 @@ public class PositionIterator<E> implements ListIterator<E>, Iterator<E> {
 	public void add(E e) {
 		throw new UnsupportedOperationException();
 	}
+	
+	public boolean hasCurrent() {
+		return (source.size() > 0) ? true : false;
+	}
 
 	@Override
 	public boolean hasNext() {
