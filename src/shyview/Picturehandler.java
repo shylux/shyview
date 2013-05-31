@@ -684,6 +684,7 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		this.cleanuplists();
 		this.sort();
 		this.setList(0);
+		this.getWindowFocus();
 		this.repaint();
 	   }
 
@@ -839,7 +840,18 @@ public class Picturehandler extends JPanel implements ImageObserver, ActionListe
 		addLists(newlists);
 		sort();
 		picListIt.setIndex(0);
+		getWindowFocus();
 		repaint();
+	}
+	
+	public void getWindowFocus() {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+		    @Override
+		    public void run() {
+		        parent.toFront();
+		        parent.repaint();
+		    }
+		});
 	}
 	
 	public static ArrayList<IPicList> loadChapter(String xmldata) {
